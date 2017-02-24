@@ -11,32 +11,118 @@ use Symfony\Component\HttpFoundation\Response;
 class TvSeriesController extends Controller
 {
     /**
-     * @Route(name="tv_series_create", path="/series/create")
-     */
-    public function createSeriesAction(Request $request){
-        $s = new TvSeries();
-        $s->setAuthor('Auteur 1');
-        $s->setName('Oeuvre 1');
-        $s->setDescription($request->get('description'));
-
-        // On récupère un manager avec Doctrine (gestion de la BDD)
-        $manager = $this->getDoctrine()->getManager();
-        // On surveille les changements sur l'objet $s
-        $manager->persist($s);
-        // Met à jour la BDD à chaque modification des objets surveillés
-        $manager->flush();
-
-        return new Response("Ok");
-    }
-
-    /**
      * @Route(name="homepage_index", path="/")
      */
-    public function listAction(){
+    public function listAction(Request $request){
         $manager = $this->get('doctrine')->getManager();
         $series = $manager->getRepository(TvSeries::class)->findAll();
 
-        return $this->render('tvseries/index.html.twig', ['series' => $series]);
+        $data = $request->request->all();
+        $toSend = (isset($data['message'])) ? $data['message'] : null;
+
+        return $this->render('tvseries/index.html.twig', ['series' => $series, 'message' => $toSend]);
+    }
+
+    /**
+     * @Route(name="tv_series_create", path="/series/create")
+     */
+    public function createSeriesAction(Request $request){
+        // Permet de restreindre l'accès.
+        /*$user = $this->container->get('security.context')->getToken()->getUser();
+        if (!is_object($user) || !$user instanceof UserInterface) {
+            throw new AccessDeniedException('This user does not have access to this section.');
+        }*/
+
+        $data = $request->request->all();
+
+        if($request->getMethod() == 'GET'){
+            return $this->render('tvseries/create.html.twig');
+        }else if($request->getMethod() == 'POST'){
+            $s = new TvSeries();
+            $s->setAuthor($data['author']);
+            $s->setName($data['name']);
+            $s->setDescription($data['description']);
+
+            // On récupère un manager avec Doctrine (gestion de la BDD)
+            $manager = $this->getDoctrine()->getManager();
+            // On surveille les changements sur l'objet $s
+            $manager->persist($s);
+            // Met à jour la BDD à chaque modification des objets surveillés
+            $manager->flush();
+
+            return $this->redirectToRoute('homepage_index', array('message' => 'serie_created'));
+            //return new Response("Created");
+        }
+    }
+
+    /**
+     * @Route(name="tv_series_update", path="/series/update")
+     */
+    public function updateSeriesAction(Request $request){
+        // Permet de restreindre l'accès.
+        /*$user = $this->container->get('security.context')->getToken()->getUser();
+        if (!is_object($user) || !$user instanceof UserInterface) {
+            throw new AccessDeniedException('This user does not have access to this section.');
+        }*/
+
+        $data = $request->request->all();
+
+        if(isset($data['updating'])){
+            $tvSeriesRepository = $this->getDoctrine()->getRepository('AppBundle:TvSeries');
+            $s = $tvSeriesRepository->find($data['updating']);
+
+            return $this->render('tvseries/update.html.twig', ['serie' => $s]);
+        }else{
+            $tvSeriesRepository = $this->getDoctrine()->getRepository('AppBundle:TvSeries');
+            $s = $tvSeriesRepository->find($data['id_serie']);
+
+            $s->setAuthor($data['author']);
+            $s->setName($data['name']);
+            $s->setDescription($data['description']);
+
+            // On récupère un manager avec Doctrine (gestion de la BDD)
+            $manager = $this->getDoctrine()->getManager();
+            // On surveille les changements sur l'objet $s
+            $manager->persist($s);
+            // Met à jour la BDD à chaque modification des objets surveillés
+            $manager->flush();
+
+            return $this->redirectToRoute('homepage_index', array('message' => 'serie_updated'));
+            //return new Response("Updated");
+        }
+    }
+
+    /**
+     * @Route(name="tv_series_delete", path="/series/delete")
+     */
+    public function deleteSeriesAction(Request $request){
+        // Permet de restreindre l'accès.
+        /*$user = $this->container->get('security.context')->getToken()->getUser();
+        if (!is_object($user) || !$user instanceof UserInterface) {
+            throw new AccessDeniedException('This user does not have access to this section.');
+        }*/
+
+        $data = $request->request->all();
+
+        var_dump($data['id_serie']);
+
+        if(isset($data['id_serie'])){
+            var_dump("coucou");
+            $tvSeriesRepository = $this->getDoctrine()->getRepository('AppBundle:TvSeries');
+            $s = $tvSeriesRepository->find($data['id_serie']);
+
+            // On récupère un manager avec Doctrine (gestion de la BDD)
+            $manager = $this->getDoctrine()->getManager();
+            // On remove l'objet $s
+            $manager->remove($s);
+            // Met à jour la BDD à chaque modification des objets surveillés
+            $manager->flush();
+
+            return $this->redirectToRoute('homepage_index', array('message' => 'serie_removed'));
+            //return new Response("Updated");
+        }else{
+            return new Response("Une erreur est survenue : La série n'a pas été trouvée.");
+        }
     }
 
     /* Exemple

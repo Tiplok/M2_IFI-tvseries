@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Series Manager</h1>
+
+    <form action="/series/update" method="post">
+        <input type="hidden" id="id_serie" name="id_serie" value="{{ serie.id }}">
+        <div>
+            <label>Autheur :</label></br>
+            <input type="text" id="author" name="author" required="required" autocomplete="off" value="{{ serie.author }}" />
+        </div>
+        <div>
+            <label>Nom série :</label></br>
+            <input type="text" id="name" name="name" required="required" autocomplete="off" value="{{ serie.name }}"/>
+        </div>
+        <div>
+            <label>Description :</label></br>
+            <textarea id="description" name="description" autocomplete="off" cols="40" rows="5" >{{ serie.description }}</textarea>
+        </div>
+        <input type="submit" value="Valider">
+    </form>
+{% endblock %}
