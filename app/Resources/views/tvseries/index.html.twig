@@ -3,6 +3,14 @@
 {% block body %}
     <h1 xmlns="http://www.w3.org/1999/html">Series Manager</h1>
 
+    <form action="/register" method="get">
+        <input type="submit" value="S'inscrire"/>
+    </form>
+
+    <form action="/login" method="get">
+        <input type="submit" value="Se connecter"/>
+    </form>
+
     <h1 style="color:red">
         {% if app.request.get('message') == 'serie_updated' %}
             Série modifiée avec succès
