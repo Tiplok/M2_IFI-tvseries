@@ -81,6 +81,21 @@ class TvSeriesController extends Controller
             // Met à jour la BDD à chaque modification des objets surveillés
             $manager->flush();
 
+            $message = \Swift_Message::newInstance()
+            ->setSubject('Nouvelle série sur Riviera Série : '+$s->getName()+' !')
+            ->setFrom('noreply@rivieraserie.com')
+            ->setTo('rivieraserie@gmail.com') // Pour envoyer à l'adresse mail de l'utilisateur : ->setTo($this->getUser()->...) 
+            ->setBody(
+                $this->renderView(
+                    // app/Resources/views/emails/newserie.html.twig
+                    'emails/newserie.html.twig',
+                    array('author' => $s->getAuthor(), 'name' => $s->getName())
+                ),
+                'text/html'
+            );
+            $mailer = $this->get('mailer');
+            $mailer->send($message);
+
             return $this->redirectToRoute('homepage_index', array('message' => 'serie_created'));
             //return new Response("Created");
         }
