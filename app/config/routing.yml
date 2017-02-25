@@ -4,3 +4,7 @@ app:
 
 fos_user:
     resource: "@FOSUserBundle/Resources/config/routing/all.xml"
+
+series_list:
+    path:  /series/list/{page}
+    defaults: { _controller: AppBundle:TvSeries:serieslist, page: 1 }

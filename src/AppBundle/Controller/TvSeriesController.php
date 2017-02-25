@@ -14,13 +14,44 @@ class TvSeriesController extends Controller
      * @Route(name="homepage_index", path="/")
      */
     public function listAction(Request $request){
-        $manager = $this->get('doctrine')->getManager();
+        // Without pagination code
+        /*$manager = $this->get('doctrine')->getManager();
         $series = $manager->getRepository(TvSeries::class)->findAll();
 
         $data = $request->request->all();
         $toSend = (isset($data['message'])) ? $data['message'] : null;
 
-        return $this->render('tvseries/index.html.twig', ['series' => $series, 'message' => $toSend]);
+        return $this->render('tvseries/index.html.twig', ['series' => $series, 'message' => $toSend]);*/
+
+        return $this->SeriesListAction($request, 1);
+    }
+
+    /**
+     * @Route(name="series_list", path="/series/list/{page}")
+     * @param $page
+     * @return Response
+     */
+    public function SeriesListAction(Request $request, $page)
+    {
+        $maxSeries = 10;
+        $series_count = $this->getDoctrine()->getManager()->getRepository('AppBundle:TvSeries')->getCount();
+        $series = $this->getDoctrine()->getManager()->getRepository('AppBundle:TvSeries')->findForPagination($page, $maxSeries);
+        $data = $request->request->all();
+        $toSend = (isset($data['message'])) ? $data['message'] : null;
+
+        $pagination = array(
+            'page' => $page,
+            'route' => 'series_list',
+            'pages_count' => ceil($series_count / $maxSeries),
+            'route_params' => array()
+        );
+
+
+        return $this->render('tvseries/index.html.twig', array(
+            'series' => $series,
+            'pagination' => $pagination,
+            'message' => $toSend
+        ));
     }
 
     /**
@@ -107,7 +138,6 @@ class TvSeriesController extends Controller
         var_dump($data['id_serie']);
 
         if(isset($data['id_serie'])){
-            var_dump("coucou");
             $tvSeriesRepository = $this->getDoctrine()->getRepository('AppBundle:TvSeries');
             $s = $tvSeriesRepository->find($data['id_serie']);
 
@@ -124,25 +154,4 @@ class TvSeriesController extends Controller
             return new Response("Une erreur est survenue : La série n'a pas été trouvée.");
         }
     }
-
-    /* Exemple
-    public function indexAction()
-    {
-        $s1 = new TvSeries();
-        $s1->setId('5efec9a2-31db-451d-982a-5e3b0f1b8d27');
-        $s1->setAuthor('Author 1');
-        $s1->setName('Title 1');
-
-        $s2 = new TvSeries();
-        $s2->setId('66b3c1d5-a4ff-41ec-809e-88e28e085a25');
-        $s2->setAuthor('Author 2');
-        $s2->setName('Title 2');
-
-        $series = [
-            $s1,
-            $s2
-        ];
-
-        return $this->render('tvseries/index.html.twig', ['series' => $series]);
-    }*/
 }
